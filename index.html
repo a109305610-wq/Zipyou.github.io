@@ -1,176 +1,864 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>个人主页</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zipyou · 个人主页</title>
+  <meta name="description" content="极简高级风个人主页，展示个人介绍、照片作品与联系方式。" />
+  <style>
+    :root{
+      --bg:#07080c;
+      --bg2:#0d1018;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.10);
+      --text:#f5f7fb;
+      --muted:rgba(245,247,251,.72);
+      --line:rgba(255,255,255,.10);
+      --shadow:0 24px 80px rgba(0,0,0,.38);
+      --accent:#9ae6ff;
+      --accent2:#b9a3ff;
+      --radius:24px;
+    }
 
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(154,230,255,.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(185,163,255,.14), transparent 24%),
+        radial-gradient(circle at 50% 10%, rgba(255,255,255,.05), transparent 30%),
+        linear-gradient(180deg, #05060a 0%, #0a0d14 40%, #06070b 100%);
+      overflow-x:hidden;
+    }
 
-body {
-    background: #0f0f10;
-    color: #fff;
-    overflow-x: hidden;
-}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
 
-/* 顶部 */
-header {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
+    .noise{
+      pointer-events:none;
+      position:fixed;
+      inset:0;
+      opacity:.05;
+      z-index:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px);
+      background-size:24px 24px;
+      mix-blend-mode:soft-light;
+    }
 
-h1 {
-    font-size: 60px;
-    font-weight: 600;
-    letter-spacing: 2px;
-}
+    .container{
+      width:min(1180px, calc(100% - 32px));
+      margin:0 auto;
+      position:relative;
+      z-index:1;
+    }
 
-.subtitle {
-    margin-top: 15px;
-    font-size: 18px;
-    color: #aaa;
-}
+    .nav{
+      position:sticky;
+      top:14px;
+      z-index:20;
+      margin-top:14px;
+      backdrop-filter:blur(18px);
+      background:rgba(10,12,18,.58);
+      border:1px solid var(--line);
+      border-radius:999px;
+      box-shadow:var(--shadow);
+    }
 
-/* 分区 */
-.section {
-    padding: 80px 10%;
-}
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:14px 18px;
+    }
 
-/* 照片墙 */
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:700;
+      letter-spacing:.4px;
+      white-space:nowrap;
+    }
 
-.gallery img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 12px;
-    transition: 0.4s;
-    cursor: pointer;
-}
+    .brand-mark{
+      width:38px;height:38px;border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.1) 24%, transparent 40%),
+        linear-gradient(135deg, rgba(154,230,255,.85), rgba(185,163,255,.82));
+      box-shadow:0 14px 35px rgba(154,230,255,.18);
+    }
 
-.gallery img:hover {
-    transform: scale(1.05);
-}
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      color:var(--muted);
+      font-size:14px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
 
-/* 放大查看 */
-.preview {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
+    .nav-links a{transition:.25s ease}
+    .nav-links a:hover{color:var(--text)}
 
-.preview img {
-    max-width: 80%;
-    max-height: 80%;
-    border-radius: 10px;
-}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--text);
+      font-size:14px;
+      transition:.25s ease;
+    }
+    .pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
 
-/* 页脚 */
-footer {
-    text-align: center;
-    padding: 40px;
-    color: #777;
-}
+    .hero{
+      padding:78px 0 42px;
+      min-height:calc(100vh - 90px);
+      display:grid;
+      align-items:center;
+    }
 
-/* 动画 */
-.fade-in {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: 1s;
-}
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:28px;
+      align-items:center;
+    }
 
-.fade-in.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-</style>
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:18px;
+    }
 
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 0 18px rgba(154,230,255,.75);
+    }
+
+    h1{
+      font-size:clamp(42px, 7vw, 82px);
+      line-height:.95;
+      margin:0;
+      letter-spacing:-1.8px;
+    }
+
+    .gradient-text{
+      background:linear-gradient(135deg, #ffffff 0%, #9ae6ff 45%, #b9a3ff 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .hero p{
+      max-width:62ch;
+      color:var(--muted);
+      font-size:18px;
+      line-height:1.8;
+      margin:22px 0 0;
+    }
+
+    .cta-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:28px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:14px 18px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.07);
+      color:var(--text);
+      font-weight:600;
+      transition:.25s ease;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
+    .btn.primary{
+      border-color:transparent;
+      background:linear-gradient(135deg, rgba(154,230,255,.95), rgba(185,163,255,.9));
+      color:#09111b;
+      box-shadow:0 16px 40px rgba(154,230,255,.18);
+    }
+
+    .hero-card{
+      position:relative;
+      border-radius:30px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      min-height:520px;
+      isolation:isolate;
+    }
+
+    .hero-card::before,
+    .hero-card::after{
+      content:"";
+      position:absolute;
+      inset:auto;
+      border-radius:50%;
+      filter:blur(30px);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .hero-card::before{
+      width:180px;height:180px;left:-35px;top:-35px;
+      background:rgba(154,230,255,.24);
+    }
+    .hero-card::after{
+      width:210px;height:210px;right:-45px;bottom:-50px;
+      background:rgba(185,163,255,.22);
+    }
+
+    .portrait{
+      position:absolute;
+      inset:18px;
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+        url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80') center/cover;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .portrait-overlay{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(180deg, rgba(8,10,14,.04) 0%, rgba(8,10,14,.18) 50%, rgba(8,10,14,.78) 100%);
+    }
+
+    .floating{
+      position:absolute;
+      left:20px;
+      right:20px;
+      bottom:20px;
+      z-index:2;
+      display:grid;
+      gap:12px;
+    }
+
+    .glass{
+      backdrop-filter:blur(18px);
+      background:rgba(8,10,14,.44);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      padding:16px 18px;
+    }
+
+    .profile-title{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-end;
+    }
+
+    .profile-title strong{
+      display:block;
+      font-size:20px;
+      letter-spacing:.2px;
+    }
+
+    .profile-title span,
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .chip{
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    section{
+      padding:32px 0;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-end;
+      margin-bottom:18px;
+    }
+
+    .section-head h2{
+      margin:0;
+      font-size:clamp(24px, 3vw, 34px);
+      letter-spacing:-.7px;
+    }
+    .section-head p{
+      margin:0;
+      color:var(--muted);
+      max-width:55ch;
+      line-height:1.8;
+      font-size:15px;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:16px;
+    }
+
+    .card{
+      border-radius:24px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .stat{
+      padding:22px;
+    }
+
+    .stat .num{
+      font-size:36px;
+      font-weight:800;
+      letter-spacing:-1px;
+      margin-bottom:4px;
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .about{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:16px;
+      align-items:stretch;
+    }
+
+    .about-card{
+      padding:24px;
+    }
+
+    .about-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.95;
+      font-size:16px;
+    }
+
+    .timeline{
+      display:grid;
+      gap:14px;
+    }
+
+    .timeline-item{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:14px;
+      align-items:start;
+      padding:18px 18px 18px 16px;
+    }
+
+    .timeline-dot{
+      width:12px;height:12px;border-radius:50%;
+      margin-top:7px;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 0 18px rgba(154,230,255,.6);
+    }
+
+    .timeline-item h3{
+      margin:0 0 6px;
+      font-size:16px;
+    }
+
+    .timeline-item p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:14px;
+    }
+
+    .gallery{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:14px;
+    }
+
+    .photo{
+      position:relative;
+      min-height:240px;
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background:#111;
+      cursor:pointer;
+      transition:transform .25s ease, box-shadow .25s ease;
+      box-shadow:var(--shadow);
+    }
+    .photo:hover{
+      transform:translateY(-4px);
+    }
+
+    .photo::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(7,8,12,.05), rgba(7,8,12,.58));
+    }
+
+    .photo .caption{
+      position:absolute;
+      left:16px;
+      right:16px;
+      bottom:16px;
+      z-index:2;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10px;
+    }
+
+    .caption strong{
+      display:block;
+      font-size:16px;
+      margin-bottom:4px;
+    }
+    .caption span{
+      color:rgba(245,247,251,.70);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .p1{grid-column:span 7;background:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1400&q=80') center/cover}
+    .p2{grid-column:span 5;background:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1400&q=80') center/cover}
+    .p3{grid-column:span 4;background:url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1400&q=80') center/cover}
+    .p4{grid-column:span 4;background:url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1400&q=80') center/cover}
+    .p5{grid-column:span 4;background:url('https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1400&q=80') center/cover}
+    .p6{grid-column:span 12;min-height:300px;background:url('https://images.unsplash.com/photo-1514894780887-121969f4f5b4?auto=format&fit=crop&w=1800&q=80') center/cover}
+
+    .contact{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      align-items:stretch;
+    }
+
+    .contact-card{
+      padding:24px;
+    }
+
+    .contact-card h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+
+    .contact-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.85;
+    }
+
+    .contact-list{
+      margin-top:16px;
+      display:grid;
+      gap:10px;
+    }
+
+    .contact-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      font-size:14px;
+    }
+
+    .footer{
+      padding:24px 0 40px;
+      color:rgba(245,247,251,.55);
+      font-size:13px;
+      text-align:center;
+    }
+
+    .reveal{
+      opacity:0;
+      transform:translateY(20px);
+      transition:opacity .8s ease, transform .8s ease;
+    }
+    .reveal.show{
+      opacity:1;
+      transform:none;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.82);
+      backdrop-filter:blur(12px);
+      z-index:50;
+      padding:24px;
+    }
+    .modal.show{display:flex}
+    .modal img{
+      max-width:min(1100px, 96vw);
+      max-height:86vh;
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .cursor-glow{
+      position:fixed;
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      pointer-events:none;
+      z-index:0;
+      background:radial-gradient(circle, rgba(154,230,255,.10), transparent 60%);
+      transform:translate(-50%,-50%);
+      filter:blur(10px);
+      opacity:.9;
+      mix-blend-mode:screen;
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,
+      .about,
+      .contact{
+        grid-template-columns:1fr;
+      }
+      .hero{
+        padding-top:34px;
+        min-height:auto;
+      }
+      .hero-card{
+        min-height:440px;
+      }
+      .grid-3{
+        grid-template-columns:1fr;
+      }
+      .p1,.p2,.p3,.p4,.p5,.p6{
+        grid-column:span 12;
+      }
+      .nav-inner{
+        padding:12px 14px;
+      }
+      .nav-links{
+        display:none;
+      }
+      h1{
+        letter-spacing:-1.2px;
+      }
+    }
+
+    @media (max-width: 560px){
+      .container{width:min(100% - 20px, 1180px)}
+      .hero p{
+        font-size:16px;
+      }
+      .hero-card{
+        min-height:390px;
+      }
+      .floating{
+        left:14px; right:14px; bottom:14px;
+      }
+      .profile-title{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .section-head{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="glow"></div>
 
-<header>
-    <div>
-        <h1>你好，我是 陈建元</h1>
-        <div class="subtitle">极简 | 高级 | 个人展示</div>
-    </div>
-</header>
+  <div class="container">
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="#top">
+          <span class="brand-mark"></span>
+          <span>Zipyou · 个人主页</span>
+        </a>
 
-<section class="section fade-in">
-    <h2 style="margin-bottom:20px;">关于我</h2>
-    <p style="color:#aaa; line-height:1.8;">
-        这里写你的个人介绍，比如：大三机械专业 / 热爱科技 / 正在探索AI与互联网。
-    </p>
-</section>
+        <nav class="nav-links">
+          <a href="#about">关于我</a>
+          <a href="#photos">照片展示</a>
+          <a href="#contact">联系我</a>
+        </nav>
 
-<section class="section fade-in">
-    <h2 style="margin-bottom:20px;">我的照片</h2>
-    <div class="gallery">
-        <img src="https://picsum.photos/500/600?1">
-        <img src="https://picsum.photos/500/600?2">
-        <img src="https://picsum.photos/500/600?3">
-        <img src="https://picsum.photos/500/600?4">
-        <img src="https://picsum.photos/500/600?5">
-        <img src="https://picsum.photos/500/600?6">
-    </div>
-</section>
+        <a class="pill" href="#contact">立即联系</a>
+      </div>
+    </header>
 
-<div class="preview" id="preview">
-    <img src="" id="previewImg">
-</div>
+    <main id="top" class="hero">
+      <div class="hero-grid">
+        <div class="reveal">
+          <div class="kicker"><span class="dot"></span> 极简高级个人展示页 · 单文件版本</div>
+          <h1><span class="gradient-text">你好，</span><br>我是 <span class="gradient-text">Zipyou</span></h1>
+          <p>
+            这里是一个极简但很高级的个人主页。适合展示你的个人照片、风格、简介和联系方式。
+            页面已经做好了光影、卡片、滚动动画和响应式布局，手机和电脑都能看起来很舒服。
+          </p>
 
-<footer>
-    © 2026 王峰 - Personal Page
-</footer>
+          <div class="cta-row">
+            <a class="btn primary" href="#photos">查看照片</a>
+            <a class="btn" href="#about">了解我</a>
+          </div>
+        </div>
 
-<script>
-// 图片点击放大
-const images = document.querySelectorAll('.gallery img');
-const preview = document.getElementById('preview');
-const previewImg = document.getElementById('previewImg');
+        <div class="hero-card reveal">
+          <div class="portrait">
+            <div class="portrait-overlay"></div>
+          </div>
+          <div class="floating">
+            <div class="glass">
+              <div class="profile-title">
+                <div>
+                  <strong>Zipyou</strong>
+                  <span>个人展示 · 极简审美 · 质感排版</span>
+                </div>
+                <div class="meta">更新于现在</div>
+              </div>
+              <div class="chips">
+                <span class="chip">极简风</span>
+                <span class="chip">高级感</span>
+                <span class="chip">照片展示</span>
+                <span class="chip">单文件网页</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
 
-images.forEach(img => {
-    img.onclick = () => {
-        preview.style.display = 'flex';
-        previewImg.src = img.src;
-    }
-});
+    <section class="reveal">
+      <div class="grid-3">
+        <div class="card stat">
+          <div class="num">01</div>
+          <div class="label">个人展示首页，打开就有质感，不是普通模板。</div>
+        </div>
+        <div class="card stat">
+          <div class="num">06</div>
+          <div class="label">照片展示位，适合放你的真实照片或作品图。</div>
+        </div>
+        <div class="card stat">
+          <div class="num">100%</div>
+          <div class="label">纯单文件，直接上传到 GitHub Pages 就能运行。</div>
+        </div>
+      </div>
+    </section>
 
-preview.onclick = () => {
-    preview.style.display = 'none';
-};
+    <section id="about" class="reveal">
+      <div class="section-head">
+        <div>
+          <h2>关于我</h2>
+          <p>这里放你的个人介绍。你可以写学校、专业、兴趣、审美、爱好，或者一句很有风格的话。</p>
+        </div>
+      </div>
 
-// 滚动动画
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('show');
-        }
+      <div class="about">
+        <div class="card about-card">
+          <p>
+            我喜欢极简、克制、干净的表达方式，也喜欢让网页有一点点“贵”的感觉。
+            这个页面的重点不是堆很多内容，而是把视觉层次、排版节奏和图片质感做好。
+            你可以把它当成你的个人名片、作品集首页或者展示页。
+          </p>
+        </div>
+
+        <div class="card about-card timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <h3>个人风格</h3>
+              <p>极简、高级、干净、带一点点未来感。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <h3>展示内容</h3>
+              <p>个人介绍、照片展示、联系方式、简单标签。</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <h3>使用方式</h3>
+              <p>直接保存为 index.html，上传到 GitHub Pages 即可上线。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="photos" class="reveal">
+      <div class="section-head">
+        <div>
+          <h2>照片展示</h2>
+          <p>点击任意图片可以放大查看。你后面只要把图片链接换成自己的照片就行。</p>
+        </div>
+      </div>
+
+      <div class="gallery">
+        <div class="photo p1" data-full="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1800&q=90">
+          <div class="caption">
+            <div><strong>Portrait 01</strong><span>人物氛围感照片</span></div>
+          </div>
+        </div>
+        <div class="photo p2" data-full="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1800&q=90">
+          <div class="caption">
+            <div><strong>Portrait 02</strong><span>极简高级人像</span></div>
+          </div>
+        </div>
+        <div class="photo p3" data-full="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&q=90">
+          <div class="caption">
+            <div><strong>Portrait 03</strong><span>自然光与生活感</span></div>
+          </div>
+        </div>
+        <div class="photo p4" data-full="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1800&q=90">
+          <div class="caption">
+            <div><strong>Portrait 04</strong><span>柔和光影质感</span></div>
+          </div>
+        </div>
+        <div class="photo p5" data-full="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1800&q=90">
+          <div class="caption">
+            <div><strong>Portrait 05</strong><span>更有故事感的留白</span></div>
+          </div>
+        </div>
+        <div class="photo p6" data-full="https://images.unsplash.com/photo-1514894780887-121969f4f5b4?auto=format&fit=crop&w=2000&q=90">
+          <div class="caption">
+            <div><strong>Featured Photo</strong><span>作为横幅主图非常合适</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="reveal">
+      <div class="section-head">
+        <div>
+          <h2>联系我</h2>
+          <p>这里可以放你的微信、邮箱、QQ、微博或其他联系方式。</p>
+        </div>
+      </div>
+
+      <div class="contact">
+        <div class="card contact-card">
+          <h3>一段很适合放在这里的话</h3>
+          <p>
+            如果你想把这个网站做得更像“个人品牌主页”，可以继续加：真实照片、社交链接、
+            作品展示、短介绍、音乐播放器，甚至是一个留言表单。
+          </p>
+          <div class="cta-row" style="margin-top:18px">
+            <a class="btn primary" href="#top">回到顶部</a>
+            <a class="btn" href="mailto:you@example.com">发送邮件</a>
+          </div>
+        </div>
+
+        <div class="card contact-card">
+          <div class="contact-list">
+            <div class="contact-item"><span>微信</span><strong>your-wechat</strong></div>
+            <div class="contact-item"><span>邮箱</span><strong>you@example.com</strong></div>
+            <div class="contact-item"><span>GitHub</span><strong>@Zipyou</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">© 2026 Zipyou · Personal Homepage</div>
+  </div>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <img id="modalImg" alt="预览图片" />
+  </div>
+
+  <script>
+    // 滚动出现动画
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('show');
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // 图片放大预览
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+
+    document.querySelectorAll('.photo').forEach(photo => {
+      photo.addEventListener('click', () => {
+        modalImg.src = photo.dataset.full || photo.style.backgroundImage.replace(/url\(["']?/, '').replace(/["']?\)$/, '');
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+      });
     });
-});
 
-document.querySelectorAll('.fade-in').forEach(el => {
-    observer.observe(el);
-});
-</script>
+    modal.addEventListener('click', () => {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      modalImg.src = '';
+    });
 
+    // 鼠标光效
+    const glow = document.getElementById('glow');
+    window.addEventListener('mousemove', (e) => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+
+    // 小幅视差
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY * 0.03;
+      document.body.style.backgroundPosition = `center ${y}px`;
+    });
+  </script>
 </body>
 </html>
