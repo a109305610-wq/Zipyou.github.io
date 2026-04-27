@@ -3,195 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>陈建元 | 探索机械与数字的边界</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <title>陈建元 | 核心稳定器</title>
     <style>
         :root {
-            --bg: #000;
-            --text: #fff;
-            --secondary: #86868b;
-            --accent: #0071e3;
-            --glass: rgba(22, 22, 23, 0.72);
+            --apple-bg: #000;
+            --apple-text: #f5f5f7;
+            --accent: #2997ff;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow-x: hidden;
-            line-height: 1.5;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            user-select: none;
         }
-
-        /* 顶部导航 */
-        nav {
-            position: fixed; top: 0; width: 100%; height: 50px;
-            background: var(--glass); backdrop-filter: blur(20px);
-            z-index: 1000; display: flex; justify-content: center; align-items: center;
-            border-bottom: 0.5px solid rgba(255,255,255,0.1);
-        }
-        nav a { color: var(--text); text-decoration: none; margin: 0 20px; font-size: 12px; opacity: 0.8; transition: 0.3s; }
-        nav a:hover { opacity: 1; }
-
-        /* 粒子背景 */
-        #particles-js { position: fixed; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-
-        section { position: relative; z-index: 2; padding: 100px 5%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-
-        /* Hero Section */
-        .hero { align-items: center; text-align: center; }
-        .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; letter-spacing: -2px; line-height: 1.1; }
-        .hero .gradient-text { 
-            background: linear-gradient(180deg, #fff 0%, #555 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .hero p { color: var(--secondary); font-size: 1.5rem; margin-top: 20px; max-width: 700px; }
-
-        /* 简介 Section */
-        .about-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; align-items: center; }
-        .about-image { 
-            width: 100%; aspect-ratio: 1; border-radius: 30px; 
-            background: url('https://images.unsplash.com/photo-1555617766-c94804975da3?q=80&w=800') center/cover;
-            box-shadow: 0 0 50px rgba(255,255,255,0.1);
-        }
-        .about-text h2 { font-size: 3rem; margin-bottom: 20px; }
-        .tag { display: inline-block; padding: 5px 15px; border: 1px solid var(--accent); border-radius: 20px; color: var(--accent); font-size: 12px; margin-bottom: 10px; }
-
-        /* 项目展示 */
-        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 50px; }
-        .card { 
-            background: #161617; border-radius: 25px; padding: 40px; 
-            transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
-            border: 1px solid transparent; overflow: hidden; position: relative;
-        }
-        .card:hover { transform: scale(1.02); border-color: #333; }
-        .card h3 { font-size: 1.8rem; margin-bottom: 15px; }
-        .card p { color: var(--secondary); }
+        canvas { display: block; cursor: crosshair; }
         
-        /* 音乐按钮 */
-        .music-player {
-            position: fixed; bottom: 40px; left: 40px; z-index: 1001;
-            background: var(--glass); padding: 10px 20px; border-radius: 30px;
-            display: flex; align-items: center; gap: 10px; cursor: pointer; border: 0.5px solid #444;
+        /* UI 盖层 */
+        #ui {
+            position: absolute; top: 40px; text-align: center; pointer-events: none;
         }
-        .music-icon { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+        #score { font-size: 4rem; font-weight: 200; letter-spacing: -2px; }
+        #msg { font-size: 1rem; color: #86868b; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* 引导提示 */
+        #hint {
+            position: absolute; bottom: 40px; color: #444; font-size: 0.8rem;
+        }
 
+        /* 游戏结束弹窗 */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        #overlay h2 { font-size: 3rem; margin-bottom: 10px; }
+        button {
+            background: var(--apple-text); border: none; padding: 12px 30px;
+            border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
-    <div id="particles-js"></div>
-    
-    <nav>
-        <a href="#hero">陈建元</a>
-        <a href="#about">关于</a>
-        <a href="#work">项目</a>
-        <a href="#contact">联系</a>
-    </nav>
-
-    <section class="hero" id="hero">
-        <h1 class="gradient-text">你好，我是陈建元</h1>
-        <p>机械工程与数字开发的交叉探索者。在逻辑与美学之间，构建未来的可能性。</p>
-    </section>
-
-    <section id="about">
-        <div class="about-content">
-            <div class="about-image animate-on-scroll"></div>
-            <div class="about-text">
-                <span class="tag">ABOUT ME</span>
-                <h2 class="animate-on-scroll">硬核工科背景<br>驱动数字灵魂</h2>
-                <p class="animate-on-scroll" style="color: var(--secondary); font-size: 1.2rem;">
-                    作为一名深耕于机械工程领域的学子，我热衷于将严谨的精密结构逻辑引入软件开发。从 CNC 坐标系的精准推演，到 Go 语言高并发后端的架构设计，我始终在追求那种如同 Apple 硬件般的工业级美感。
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section id="work">
-        <h2 style="font-size: 3rem; text-align: center; margin-bottom: 50px;">核心工程与项目</h2>
-        <div class="projects-grid">
-            <div class="card animate-on-scroll">
-                <span class="tag">DEVELOPMENT</span>
-                <h3>WeChat 告白墙</h3>
-                <p>构建校园实时的互动社区，采用极简 UI 设计语言，将情感交流数字化。探索全栈开发的无限可能。</p>
-            </div>
-            <div class="card animate-on-scroll">
-                <span class="tag">MECHANICAL</span>
-                <h3>CNC 精密控制研究</h3>
-                <p>基于增量坐标与工具补偿表的深度研究，实现毫米级以下的精密加工路径优化，探索工业之美。</p>
-            </div>
-            <div class="card animate-on-scroll">
-                <span class="tag">INNOVATION</span>
-                <h3>硬件比价系统</h3>
-                <p>开发实时监控硬件市场波动的算法工具，将数据抓取与分析结合，为 DIY 爱好者提供决策支持。</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="music-player" id="musicToggle">
-        <div class="music-icon"></div>
-        <span id="musicText">播放《知我》</span>
+    <div id="ui">
+        <div id="msg">Stability Level</div>
+        <div id="score">0</div>
     </div>
-    <audio id="bgMusic" loop src="YOUR_AUDIO_URL.mp3"></audio>
 
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <div id="hint">点击/空格 切换核心旋转方向以吸收同色粒子</div>
+
+    <div id="overlay">
+        <h2 id="final-score">SCORE: 0</h2>
+        <p style="margin-bottom: 20px; color: #86868b;">核心已失控</p>
+        <button onclick="resetGame()">重新初始化</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
     <script>
-        // 1. 粒子系统配置 (更高端的深空星点效果)
-        particlesJS("particles-js", {
-            "particles": {
-                "number": { "value": 40, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": "#ffffff" },
-                "shape": { "type": "circle" },
-                "opacity": { "value": 0.2, "random": true },
-                "size": { "value": 1, "random": true },
-                "line_linked": { "enable": true, "distance": 200, "color": "#ffffff", "opacity": 0.1, "width": 1 },
-                "move": { "enable": true, "speed": 0.5, "direction": "none", "random": true }
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const overlay = document.getElementById('overlay');
+        const finalScoreEl = document.getElementById('final-score');
+
+        let width, height, score, gameActive, core;
+        let particles = [];
+        let sparks = [];
+
+        class Core {
+            constructor() {
+                this.radius = 50;
+                this.angle = 0;
+                this.rotationSpeed = 0.05;
+                this.direction = 1; // 1 为顺时针，-1 为逆时针
+                this.color = '#fff';
             }
-        });
-
-        // 2. GSAP 滚动动画渲染 (Apple 级的平滑度)
-        gsap.registerPlugin(ScrollTrigger);
-
-        // 标题渐显与缩放
-        gsap.from(".hero h1", {
-            duration: 1.5, y: 50, opacity: 0, ease: "power4.out"
-        });
-
-        // 滚动触发通用动画
-        const scrollAnimate = document.querySelectorAll('.animate-on-scroll');
-        scrollAnimate.forEach((el) => {
-            gsap.from(el, {
-                scrollTrigger: {
-                    trigger: el,
-                    start: "top 85%",
-                    toggleActions: "play none none reverse"
-                },
-                duration: 1.2,
-                y: 60,
-                opacity: 0,
-                ease: "power3.out"
-            });
-        });
-
-        // 3. 音乐交互
-        const audio = document.getElementById('bgMusic');
-        const toggle = document.getElementById('musicToggle');
-        const text = document.getElementById('musicText');
-        let playing = false;
-
-        toggle.addEventListener('click', () => {
-            if(!playing) {
-                audio.play();
-                text.innerText = "正在聆听 - 知我";
-            } else {
-                audio.pause();
-                text.innerText = "播放《知我》";
+            update() {
+                this.angle += this.rotationSpeed * this.direction;
+                // 动态改变核心颜色体现机械质感
+                this.color = this.direction === 1 ? '#2997ff' : '#ff3b30';
             }
-            playing = !playing;
+            draw() {
+                ctx.save();
+                ctx.translate(width/2, height/2);
+                ctx.rotate(this.angle);
+                
+                // 绘制核心外环
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 绘制核心刻度（机械感）
+                for(let i=0; i<4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.radius - 10, -2, 15, 4);
+                }
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                const side = Math.floor(Math.random() * 4);
+                this.radius = 5;
+                this.type = Math.random() > 0.5 ? 1 : -1; // 1为蓝，-1为红
+                this.color = this.type === 1 ? '#2997ff' : '#ff3b30';
+                
+                if(side === 0) { this.x = Math.random()*width; this.y = -20; }
+                else if(side === 1) { this.x = width+20; this.y = Math.random()*height; }
+                else if(side === 2) { this.x = Math.random()*width; this.y = height+20; }
+                else { this.x = -20; this.y = Math.random()*height; }
+
+                const angle = Math.atan2(height/2 - this.y, width/2 - this.x);
+                const speed = 2 + (score / 10);
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function createSparks(x, y, color) {
+            for(let i=0; i<8; i++) {
+                sparks.push({
+                    x, y, 
+                    vx: (Math.random()-0.5)*10, 
+                    vy: (Math.random()-0.5)*10,
+                    life: 1.0,
+                    color
+                });
+            }
+        }
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            score = 0;
+            gameActive = true;
+            particles = [];
+            sparks = [];
+            core = new Core();
+            scoreEl.innerText = score;
+            overlay.style.display = 'none';
+        }
+
+        function resetGame() {
+            init();
+            animate();
+        }
+
+        function animate() {
+            if(!gameActive) return;
+            requestAnimationFrame(animate);
+            
+            // Apple 式的残影效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, width, height);
+
+            core.update();
+            core.draw();
+
+            // 生成敌人
+            if(Math.random() < 0.03 + (score/2000)) {
+                particles.push(new Enemy());
+            }
+
+            // 处理敌人粒子
+            for(let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+
+                // 碰撞检测
+                const dist = Math.hypot(p.x - width/2, p.y - height/2);
+                if(dist < core.radius + 5) {
+                    if(p.type === core.direction) {
+                        // 匹配成功
+                        score++;
+                        scoreEl.innerText = score;
+                        createSparks(p.x, p.y, p.color);
+                        particles.splice(i, 1);
+                    } else {
+                        // 匹配失败 - 结束
+                        gameActive = false;
+                        finalScoreEl.innerText = `SCORE: ${score}`;
+                        overlay.style.display = 'flex';
+                    }
+                }
+            }
+
+            // 处理火花
+            for(let i = sparks.length - 1; i >= 0; i--) {
+                const s = sparks[i];
+                s.x += s.vx; s.y += s.vy;
+                s.life -= 0.02;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 2, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(${s.color === '#2997ff' ? '41,151,255' : '255,59,48'}, ${s.life})`;
+                ctx.fill();
+                if(s.life <= 0) sparks.splice(i, 1);
+            }
+        }
+
+        // 交互逻辑
+        const handleAction = () => {
+            if(gameActive) core.direction *= -1;
+        };
+
+        window.addEventListener('mousedown', handleAction);
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleAction(); });
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
         });
+
+        init();
+        animate();
     </script>
 </body>
 </html>
+
 
