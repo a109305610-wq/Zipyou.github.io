@@ -3,295 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的高端个人主页</title>
+    <title>陈建元 | 探索机械与数字的边界</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <style>
         :root {
-            --bg-color: #000000;
-            --text-color: #f5f5f7;
-            --accent-color: #2997ff;
+            --bg: #000;
+            --text: #fff;
+            --secondary: #86868b;
+            --accent: #0071e3;
+            --glass: rgba(22, 22, 23, 0.72);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Helvetica", "Arial", "PingFang SC", sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* 粒子背景容器 */
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            background-color: #000000;
-        }
-
-        /* 磨砂玻璃导航栏 (Apple 风格) */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 40px;
-        }
-
-        nav a {
-            color: #f5f5f7;
-            text-decoration: none;
-            font-size: 14px;
-            letter-spacing: 1px;
-            transition: color 0.3s ease;
-        }
-
-        nav a:hover {
-            color: var(--accent-color);
-        }
-
-        /* 各个区块通用样式 */
-        section {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 100px 20px;
-            text-align: center;
-        }
-
-        /* 首屏 Hero Section */
-        h1 {
-            font-size: 5rem;
-            font-weight: 600;
-            letter-spacing: -0.05em;
-            background: linear-gradient(90deg, #fff, #888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-        }
-
-        p.subtitle {
-            font-size: 1.5rem;
-            color: #86868b;
-            max-width: 600px;
             line-height: 1.5;
         }
 
-        /* 个人简介区块 */
-        .profile-pic {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(255,255,255,0.1);
-            transition: transform 0.5s ease;
+        /* 顶部导航 */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 50px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            z-index: 1000; display: flex; justify-content: center; align-items: center;
+            border-bottom: 0.5px solid rgba(255,255,255,0.1);
         }
+        nav a { color: var(--text); text-decoration: none; margin: 0 20px; font-size: 12px; opacity: 0.8; transition: 0.3s; }
+        nav a:hover { opacity: 1; }
 
-        .profile-pic:hover {
-            transform: scale(1.05);
-        }
+        /* 粒子背景 */
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 
-        .bio-text {
-            font-size: 1.2rem;
-            color: #a1a1a6;
-            max-width: 800px;
-            line-height: 1.8;
-            margin: 20px auto;
-        }
+        section { position: relative; z-index: 2; padding: 100px 5%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
 
-        /* 滚动出现动画 (核心亮点) */
-        .reveal {
-            opacity: 0;
-            transform: translateY(80px);
-            transition: all 1.2s cubic-bezier(0.5, 0, 0, 1);
+        /* Hero Section */
+        .hero { align-items: center; text-align: center; }
+        .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; letter-spacing: -2px; line-height: 1.1; }
+        .hero .gradient-text { 
+            background: linear-gradient(180deg, #fff 0%, #555 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+        .hero p { color: var(--secondary); font-size: 1.5rem; margin-top: 20px; max-width: 700px; }
 
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
+        /* 简介 Section */
+        .about-content { display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; align-items: center; }
+        .about-image { 
+            width: 100%; aspect-ratio: 1; border-radius: 30px; 
+            background: url('https://images.unsplash.com/photo-1555617766-c94804975da3?q=80&w=800') center/cover;
+            box-shadow: 0 0 50px rgba(255,255,255,0.1);
         }
+        .about-text h2 { font-size: 3rem; margin-bottom: 20px; }
+        .tag { display: inline-block; padding: 5px 15px; border: 1px solid var(--accent); border-radius: 20px; color: var(--accent); font-size: 12px; margin-bottom: 10px; }
 
-        /* 音乐控制按钮 */
-        .music-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
+        /* 项目展示 */
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 50px; }
+        .card { 
+            background: #161617; border-radius: 25px; padding: 40px; 
+            transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+            border: 1px solid transparent; overflow: hidden; position: relative;
         }
+        .card:hover { transform: scale(1.02); border-color: #333; }
+        .card h3 { font-size: 1.8rem; margin-bottom: 15px; }
+        .card p { color: var(--secondary); }
+        
+        /* 音乐按钮 */
+        .music-player {
+            position: fixed; bottom: 40px; left: 40px; z-index: 1001;
+            background: var(--glass); padding: 10px 20px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer; border: 0.5px solid #444;
+        }
+        .music-icon { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-        .music-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.1);
-        }
-
-        .music-btn.playing {
-            animation: spin 4s linear infinite;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            h1 { font-size: 3rem; }
-            nav ul { gap: 20px; }
-        }
     </style>
 </head>
 <body>
 
     <div id="particles-js"></div>
-
-    <audio id="bgMusic" loop>
-        <source src="YOUR_AUDIO_URL.mp3" type="audio/mpeg">
-    </audio>
-
-    <button class="music-btn" id="musicToggle" onclick="toggleMusic()">🎵 播放</button>
-
+    
     <nav>
-        <ul>
-            <li><a href="#home">首页</a></li>
-            <li><a href="#about">关于我</a></li>
-            <li><a href="#gallery">影像</a></li>
-            <li><a href="#contact">联系</a></li>
-        </ul>
+        <a href="#hero">陈建元</a>
+        <a href="#about">关于</a>
+        <a href="#work">项目</a>
+        <a href="#contact">联系</a>
     </nav>
 
-    <section id="home">
-        <h1 class="reveal">突破界限。<br>探索未知。</h1>
-        <p class="subtitle reveal" style="transition-delay: 0.2s;">欢迎来到我的数字宇宙。极致体验，由此开启。</p>
+    <section class="hero" id="hero">
+        <h1 class="gradient-text">你好，我是陈建元</h1>
+        <p>机械工程与数字开发的交叉探索者。在逻辑与美学之间，构建未来的可能性。</p>
     </section>
 
     <section id="about">
-        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=500&auto=format&fit=crop" alt="我的照片" class="profile-pic reveal">
-        <h2 class="reveal" style="font-size: 2.5rem; margin-bottom: 20px;">你好，我是 [你的名字]</h2>
-        <p class="bio-text reveal">
-            我是一名充满热情的创作者，致力于在数字世界中寻找美与逻辑的平衡。<br>
-            像 Apple 一样，我追求极致的细节与极简的哲学。<br>
-            在这个充满噪音的世界里，我希望用纯粹的作品传递力量。
-        </p>
-    </section>
-
-    <section id="gallery">
-        <h2 class="reveal" style="font-size: 3rem; margin-bottom: 40px;">捕捉瞬间，定格永恒。</h2>
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;" class="reveal">
-            <div style="width: 300px; height: 400px; background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop') center/cover; border-radius: 20px;"></div>
-            <div style="width: 300px; height: 400px; background: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400&auto=format&fit=crop') center/cover; border-radius: 20px;"></div>
-            <div style="width: 300px; height: 400px; background: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=400&auto=format&fit=crop') center/cover; border-radius: 20px;"></div>
+        <div class="about-content">
+            <div class="about-image animate-on-scroll"></div>
+            <div class="about-text">
+                <span class="tag">ABOUT ME</span>
+                <h2 class="animate-on-scroll">硬核工科背景<br>驱动数字灵魂</h2>
+                <p class="animate-on-scroll" style="color: var(--secondary); font-size: 1.2rem;">
+                    作为一名深耕于机械工程领域的学子，我热衷于将严谨的精密结构逻辑引入软件开发。从 CNC 坐标系的精准推演，到 Go 语言高并发后端的架构设计，我始终在追求那种如同 Apple 硬件般的工业级美感。
+                </p>
+            </div>
         </div>
     </section>
 
+    <section id="work">
+        <h2 style="font-size: 3rem; text-align: center; margin-bottom: 50px;">核心工程与项目</h2>
+        <div class="projects-grid">
+            <div class="card animate-on-scroll">
+                <span class="tag">DEVELOPMENT</span>
+                <h3>WeChat 告白墙</h3>
+                <p>构建校园实时的互动社区，采用极简 UI 设计语言，将情感交流数字化。探索全栈开发的无限可能。</p>
+            </div>
+            <div class="card animate-on-scroll">
+                <span class="tag">MECHANICAL</span>
+                <h3>CNC 精密控制研究</h3>
+                <p>基于增量坐标与工具补偿表的深度研究，实现毫米级以下的精密加工路径优化，探索工业之美。</p>
+            </div>
+            <div class="card animate-on-scroll">
+                <span class="tag">INNOVATION</span>
+                <h3>硬件比价系统</h3>
+                <p>开发实时监控硬件市场波动的算法工具，将数据抓取与分析结合，为 DIY 爱好者提供决策支持。</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="music-player" id="musicToggle">
+        <div class="music-icon"></div>
+        <span id="musicText">播放《知我》</span>
+    </div>
+    <audio id="bgMusic" loop src="YOUR_AUDIO_URL.mp3"></audio>
+
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script>
-        // 1. 初始化粒子特效 (高端连线效果)
+        // 1. 粒子系统配置 (更高端的深空星点效果)
         particlesJS("particles-js", {
             "particles": {
-                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "number": { "value": 40, "density": { "enable": true, "value_area": 800 } },
                 "color": { "value": "#ffffff" },
                 "shape": { "type": "circle" },
-                "opacity": { "value": 0.5, "random": false },
-                "size": { "value": 3, "random": true },
-                "line_linked": {
-                    "enable": true,
-                    "distance": 150,
-                    "color": "#ffffff",
-                    "opacity": 0.2,
-                    "width": 1
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 2,
-                    "direction": "none",
-                    "random": false,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false,
-                }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": { "enable": true, "mode": "grab" },
-                    "onclick": { "enable": true, "mode": "push" },
-                    "resize": true
-                },
-                "modes": {
-                    "grab": { "distance": 140, "line_linked": { "opacity": 1 } },
-                    "push": { "particles_nb": 4 }
-                }
-            },
-            "retina_detect": true
+                "opacity": { "value": 0.2, "random": true },
+                "size": { "value": 1, "random": true },
+                "line_linked": { "enable": true, "distance": 200, "color": "#ffffff", "opacity": 0.1, "width": 1 },
+                "move": { "enable": true, "speed": 0.5, "direction": "none", "random": true }
+            }
         });
 
-        // 2. 滚动出现动画 (Intersection Observer 监听元素进入视口)
-        function reveal() {
-            var reveals = document.querySelectorAll(".reveal");
-            for (var i = 0; i < reveals.length; i++) {
-                var windowHeight = window.innerHeight;
-                var elementTop = reveals[i].getBoundingClientRect().top;
-                var elementVisible = 100; // 元素距离底部多少距离时触发动画
-                if (elementTop < windowHeight - elementVisible) {
-                    reveals[i].classList.add("active");
-                }
-            }
-        }
-        window.addEventListener("scroll", reveal);
-        reveal(); // 初始化触发一次
+        // 2. GSAP 滚动动画渲染 (Apple 级的平滑度)
+        gsap.registerPlugin(ScrollTrigger);
 
-        // 3. 背景音乐控制 (现代浏览器要求必须有用户交互才能播放声音)
-        var bgMusic = document.getElementById("bgMusic");
-        var musicToggleBtn = document.getElementById("musicToggle");
-        var isPlaying = false;
+        // 标题渐显与缩放
+        gsap.from(".hero h1", {
+            duration: 1.5, y: 50, opacity: 0, ease: "power4.out"
+        });
 
-        function toggleMusic() {
-            if (isPlaying) {
-                bgMusic.pause();
-                musicToggleBtn.innerHTML = "🎵 播放";
-                musicToggleBtn.classList.remove("playing");
+        // 滚动触发通用动画
+        const scrollAnimate = document.querySelectorAll('.animate-on-scroll');
+        scrollAnimate.forEach((el) => {
+            gsap.from(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                duration: 1.2,
+                y: 60,
+                opacity: 0,
+                ease: "power3.out"
+            });
+        });
+
+        // 3. 音乐交互
+        const audio = document.getElementById('bgMusic');
+        const toggle = document.getElementById('musicToggle');
+        const text = document.getElementById('musicText');
+        let playing = false;
+
+        toggle.addEventListener('click', () => {
+            if(!playing) {
+                audio.play();
+                text.innerText = "正在聆听 - 知我";
             } else {
-                bgMusic.play().catch(e => alert("请先在代码中替换 YOUR_AUDIO_URL.mp3 为真实的音乐地址哦！"));
-                musicToggleBtn.innerHTML = "🎵 暂停";
-                musicToggleBtn.classList.add("playing");
+                audio.pause();
+                text.innerText = "播放《知我》";
             }
-            isPlaying = !isPlaying;
-        }
+            playing = !playing;
+        });
     </script>
 </body>
 </html>
+
