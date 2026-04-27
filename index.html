@@ -2,65 +2,54 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>陈建元 | 核心稳定器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jianyuan Adventure | 移动版闯关</title>
     <style>
         :root {
-            --apple-bg: #000;
-            --apple-text: #f5f5f7;
-            --accent: #2997ff;
+            --apple-blue: #0071e3;
+            --glass: rgba(255, 255, 255, 0.2);
         }
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--apple-bg);
-            color: var(--apple-text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-            user-select: none;
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background: #87CEEB; /* 经典的马里奥天空蓝 */
+            font-family: -apple-system, sans-serif;
         }
-        canvas { display: block; cursor: crosshair; }
-        
-        /* UI 盖层 */
-        #ui {
-            position: absolute; top: 40px; text-align: center; pointer-events: none;
-        }
-        #score { font-size: 4rem; font-weight: 200; letter-spacing: -2px; }
-        #msg { font-size: 1rem; color: #86868b; text-transform: uppercase; letter-spacing: 2px; }
-        
-        /* 引导提示 */
-        #hint {
-            position: absolute; bottom: 40px; color: #444; font-size: 0.8rem;
-        }
+        canvas { display: block; background: linear-gradient(#87CEEB, #E0F6FF); }
 
-        /* 游戏结束弹窗 */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 100;
+        /* 移动端虚拟按键 */
+        .controls {
+            position: fixed; bottom: 30px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            pointer-events: none; z-index: 100;
         }
-        #overlay h2 { font-size: 3rem; margin-bottom: 10px; }
-        button {
-            background: var(--apple-text); border: none; padding: 12px 30px;
-            border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        .d-pad { display: flex; gap: 15px; pointer-events: auto; }
+        .btn {
+            width: 70px; height: 70px;
+            background: var(--glass); backdrop-filter: blur(10px);
+            border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 24px; font-weight: bold;
+            user-select: none; -webkit-tap-highlight-color: transparent;
         }
-        button:hover { transform: scale(1.05); }
+        .btn:active { background: rgba(255,255,255,0.4); transform: scale(0.9); }
+        .jump-btn { width: 90px; height: 90px; pointer-events: auto; background: rgba(0, 113, 227, 0.4); }
+
+        #score-board {
+            position: fixed; top: 20px; left: 20px;
+            color: white; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <div id="msg">Stability Level</div>
-        <div id="score">0</div>
-    </div>
+    <div id="score-board">COINS: <span id="score">0</span></div>
 
-    <div id="hint">点击/空格 切换核心旋转方向以吸收同色粒子</div>
-
-    <div id="overlay">
-        <h2 id="final-score">SCORE: 0</h2>
-        <p style="margin-bottom: 20px; color: #86868b;">核心已失控</p>
-        <button onclick="resetGame()">重新初始化</button>
+    <div class="controls">
+        <div class="d-pad">
+            <div class="btn" id="leftBtn">←</div>
+            <div class="btn" id="rightBtn">→</div>
+        </div>
+        <div class="btn jump-btn" id="jumpBtn">UP</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -69,173 +58,162 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
-        const overlay = document.getElementById('overlay');
-        const finalScoreEl = document.getElementById('final-score');
 
-        let width, height, score, gameActive, core;
-        let particles = [];
-        let sparks = [];
+        // 游戏配置
+        let width, height;
+        let score = 0;
+        const gravity = 0.8;
+        const friction = 0.85;
 
-        class Core {
-            constructor() {
-                this.radius = 50;
-                this.angle = 0;
-                this.rotationSpeed = 0.05;
-                this.direction = 1; // 1 为顺时针，-1 为逆时针
-                this.color = '#fff';
-            }
-            update() {
-                this.angle += this.rotationSpeed * this.direction;
-                // 动态改变核心颜色体现机械质感
-                this.color = this.direction === 1 ? '#2997ff' : '#ff3b30';
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(width/2, height/2);
-                ctx.rotate(this.angle);
-                
-                // 绘制核心外环
-                ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+        const player = {
+            x: 100, y: 0,
+            width: 40, height: 40,
+            velX: 0, velY: 0,
+            speed: 5, jumpStrength: 15,
+            grounded: false,
+            color: "#FF3B30" // Apple Red
+        };
 
-                // 绘制核心刻度（机械感）
-                for(let i=0; i<4; i++) {
-                    ctx.rotate(Math.PI / 2);
-                    ctx.fillStyle = this.color;
-                    ctx.fillRect(this.radius - 10, -2, 15, 4);
-                }
-                ctx.restore();
-            }
-        }
-
-        class Enemy {
-            constructor() {
-                const side = Math.floor(Math.random() * 4);
-                this.radius = 5;
-                this.type = Math.random() > 0.5 ? 1 : -1; // 1为蓝，-1为红
-                this.color = this.type === 1 ? '#2997ff' : '#ff3b30';
-                
-                if(side === 0) { this.x = Math.random()*width; this.y = -20; }
-                else if(side === 1) { this.x = width+20; this.y = Math.random()*height; }
-                else if(side === 2) { this.x = Math.random()*width; this.y = height+20; }
-                else { this.x = -20; this.y = Math.random()*height; }
-
-                const angle = Math.atan2(height/2 - this.y, width/2 - this.x);
-                const speed = 2 + (score / 10);
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-        }
-
-        function createSparks(x, y, color) {
-            for(let i=0; i<8; i++) {
-                sparks.push({
-                    x, y, 
-                    vx: (Math.random()-0.5)*10, 
-                    vy: (Math.random()-0.5)*10,
-                    life: 1.0,
-                    color
-                });
-            }
-        }
+        const keys = { left: false, right: false, up: false };
+        let platforms = [];
+        let coins = [];
+        let cameraX = 0;
 
         function init() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            score = 0;
-            gameActive = true;
-            particles = [];
-            sparks = [];
-            core = new Core();
-            scoreEl.innerText = score;
-            overlay.style.display = 'none';
+
+            // 初始化关卡 (地板和平台)
+            platforms = [
+                { x: 0, y: height - 60, w: 3000, h: 60 }, // 地板
+                { x: 400, y: height - 200, w: 150, h: 20 },
+                { x: 650, y: height - 350, w: 150, h: 20 },
+                { x: 900, y: height - 250, w: 200, h: 20 },
+                { x: 1200, y: height - 400, w: 150, h: 20 },
+                { x: 1500, y: height - 200, w: 300, h: 20 },
+            ];
+
+            // 放置一些金币
+            coins = [
+                { x: 450, y: height - 250, collected: false },
+                { x: 680, y: height - 400, collected: false },
+                { x: 950, y: height - 300, collected: false },
+                { x: 1550, y: height - 250, collected: false },
+            ];
         }
 
-        function resetGame() {
-            init();
-            animate();
-        }
+        // 手机触控监听
+        const bindTouch = (id, key) => {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        };
+        bindTouch('leftBtn', 'left');
+        bindTouch('rightBtn', 'right');
+        bindTouch('jumpBtn', 'up');
 
-        function animate() {
-            if(!gameActive) return;
-            requestAnimationFrame(animate);
-            
-            // Apple 式的残影效果
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-            ctx.fillRect(0, 0, width, height);
-
-            core.update();
-            core.draw();
-
-            // 生成敌人
-            if(Math.random() < 0.03 + (score/2000)) {
-                particles.push(new Enemy());
+        function update() {
+            // 左右移动逻辑
+            if (keys.right) {
+                if (player.velX < player.speed) player.velX++;
+            }
+            if (keys.left) {
+                if (player.velX > -player.speed) player.velX--;
             }
 
-            // 处理敌人粒子
-            for(let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                p.draw();
+            player.velX *= friction;
+            player.velY += gravity;
 
-                // 碰撞检测
-                const dist = Math.hypot(p.x - width/2, p.y - height/2);
-                if(dist < core.radius + 5) {
-                    if(p.type === core.direction) {
-                        // 匹配成功
-                        score++;
-                        scoreEl.innerText = score;
-                        createSparks(p.x, p.y, p.color);
-                        particles.splice(i, 1);
-                    } else {
-                        // 匹配失败 - 结束
-                        gameActive = false;
-                        finalScoreEl.innerText = `SCORE: ${score}`;
-                        overlay.style.display = 'flex';
-                    }
+            // 预更新位置用于碰撞检测
+            player.grounded = false;
+            for (let plat of platforms) {
+                // 简单的 AABB 碰撞检测
+                if (player.x < plat.x + plat.w &&
+                    player.x + player.width > plat.x &&
+                    player.y + player.height <= plat.y &&
+                    player.y + player.height + player.velY >= plat.y) {
+                    player.velY = 0;
+                    player.y = plat.y - player.height;
+                    player.grounded = true;
                 }
             }
 
-            // 处理火花
-            for(let i = sparks.length - 1; i >= 0; i--) {
-                const s = sparks[i];
-                s.x += s.vx; s.y += s.vy;
-                s.life -= 0.02;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, 2, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(${s.color === '#2997ff' ? '41,151,255' : '255,59,48'}, ${s.life})`;
-                ctx.fill();
-                if(s.life <= 0) sparks.splice(i, 1);
+            // 跳跃
+            if (keys.up && player.grounded) {
+                player.velY = -player.jumpStrength;
+                player.grounded = false;
             }
+
+            player.x += player.velX;
+            player.y += player.velY;
+
+            // 边界检查
+            if (player.x < 0) player.x = 0;
+
+            // 相机跟随 (保持玩家在屏幕中央附近)
+            if (player.x > width / 2) {
+                cameraX = player.x - width / 2;
+            }
+
+            // 金币收集
+            coins.forEach(coin => {
+                if (!coin.collected && 
+                    Math.hypot(player.x + 20 - coin.x, player.y + 20 - coin.y) < 30) {
+                    coin.collected = true;
+                    score += 10;
+                    scoreEl.innerText = score;
+                }
+            });
         }
 
-        // 交互逻辑
-        const handleAction = () => {
-            if(gameActive) core.direction *= -1;
-        };
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
 
-        window.addEventListener('mousedown', handleAction);
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleAction(); });
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        });
+            ctx.save();
+            ctx.translate(-cameraX, 0); // 应用相机偏移
 
+            // 画地板和平台 (带有磨砂质感)
+            ctx.fillStyle = "#5D4037"; // 土地颜色
+            platforms.forEach(plat => {
+                ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                // 给平台加个绿草顶
+                ctx.fillStyle = "#4CAF50";
+                ctx.fillRect(plat.x, plat.y, plat.w, 10);
+                ctx.fillStyle = "#5D4037";
+            });
+
+            // 画金币
+            ctx.fillStyle = "#FFD700";
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 加个光泽
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(coin.x - 3, coin.y - 5, 2, 5);
+                    ctx.fillStyle = "#FFD700";
+                }
+            });
+
+            // 画玩家 (一个带表情的高端小方块)
+            ctx.fillStyle = player.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "rgba(0,0,0,0.2)";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // 眼睛
+            ctx.fillStyle = "white";
+            ctx.fillRect(player.x + 25, player.y + 10, 8, 8);
+            
+            ctx.restore();
+
+            update();
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', init);
         init();
-        animate();
+        draw();
     </script>
 </body>
 </html>
